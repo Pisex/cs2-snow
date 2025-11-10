@@ -1,0 +1,13 @@
+"Phrases"
+{
+    "Snow_Enable"
+    {
+        "ru"        " {GREEN}[Snow]{DEFAULT} Вы успешно {GREEN}включили{DEFAULT} снег"
+        "en"        " {GREEN}[Snow]{DEFAULT} You have successfully {GREEN}enabled{DEFAULT} snow"
+    }
+    "Snow_Disable"
+    {
+        "ru"        " {GREEN}[Snow]{DEFAULT} Вы успешно {RED}выключили{DEFAULT} снег"
+        "en"        " {GREEN}[Snow]{DEFAULT} You have successfully {RED}disabled{DEFAULT} snow"
+    }
+}
