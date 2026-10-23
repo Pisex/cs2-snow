@@ -12,14 +12,16 @@
 #include <deque>
 #include <functional>
 #include <utlstring.h>
-#include <KeyValues.h>
+#include <keyvalues.h>
 #include "CCSPlayerController.h"
 #include "CParticleSystem.h"
 #include "include/menus.h"
 
-class snow final : public ISmmPlugin, public IMetamodListener
+class snow final : public ISmmPlugin, public IMetamodListener, public IUtilsEntityListener
 {
 public:
+	void CheckTransmit(CCheckTransmitInfo **ppInfoList, int infoCount, CBitVec<16384> &unionTransmitEdicts, CBitVec<16384> &unionTransmitNonPlayers, const Entity2Networkable_t **pNetworkables, const uint16 *pEntityIndicies, int nEntities, bool bEnablePVSBits) override;
+
 	bool Load(PluginId id, ISmmAPI* ismm, char* error, size_t maxlen, bool late);
 	bool Unload(char* error, size_t maxlen);
 	void AllPluginsLoaded();

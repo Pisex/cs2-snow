@@ -21,14 +21,8 @@ KeyValues* g_hKVData;
 
 std::map<std::string, std::string> g_vecPhrases;
 
-SH_DECL_HOOK8_void(ISource2GameEntities, CheckTransmit, SH_NOATTRIB, 0, CCheckTransmitInfo **, int, CBitVec<16384> &, CBitVec<16384> &, const Entity2Networkable_t **, const uint16 *, int, bool);
 
 void CreateSnow(int iSlot);
-
-CGameEntitySystem* GameEntitySystem()
-{
-	return g_pUtils->GetCGameEntitySystem();
-}
 
 void StartupServer()
 {
@@ -45,9 +39,9 @@ bool snow::Load(PluginId id, ISmmAPI* ismm, char* error, size_t maxlen, bool lat
 	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_pGameResourceServiceServer, IGameResourceService, GAMERESOURCESERVICESERVER_INTERFACE_VERSION);
 
 	GET_V_IFACE_ANY(GetServerFactory, g_pSource2GameEntities, ISource2GameEntities, SOURCE2GAMEENTITIES_INTERFACE_VERSION);
-	SH_ADD_HOOK(ISource2GameEntities, CheckTransmit, g_pSource2GameEntities, SH_MEMBER(this, &snow::OnCheckTransmit), true);
 
 	g_SMAPI->AddListener( this, this );
 
@@ -84,8 +78,8 @@ void snow::OnCheckTransmit(CCheckTransmitInfo **pInfoInfoList, int nInfoCount, C
 
 bool snow::Unload(char *error, size_t maxlen)
 {
+	if(g_pUtils) g_pUtils->ClearAllHooks(g_PLID);
 	ConVar_Unregister();
-	SH_REMOVE_HOOK(ISource2GameEntities, CheckTransmit, g_pSource2GameEntities, SH_MEMBER(this, &snow::OnCheckTransmit), true);
 	
 	return true;
 }
@@ -209,6 +203,8 @@ void snow::AllPluginsLoaded()
 		engine->ServerCommand(sBuffer.c_str());
 		return;
 	}
+	g_pUtils->AddEntityListener(g_PLID, this);
+
 	
 	g_pPlayers = (IPlayersApi *)g_SMAPI->MetaFactory(PLAYERS_INTERFACE, &ret, NULL);
 	if (ret == META_IFACE_FAILED)
@@ -220,8 +216,8 @@ void snow::AllPluginsLoaded()
 		return;
 	}
 	
-	g_pPlayers->HookOnClientAuthorized(g_PLID, OnClientAuthorized);
-	g_pUtils->StartupServer(g_PLID, StartupServer);
+	g_pPlayers->HookOnClientAuthorized(g_PLID, ::OnClientAuthorized);
+	g_pUtils->StartupServer(g_PLID, ::StartupServer);
 	g_pUtils->HookEvent(g_PLID, "player_spawn", [](const char* szName, IGameEvent* pEvent, bool bDontBroadcast)
 	{
 		int iSlot = pEvent->GetInt("userid");
@@ -286,4 +282,9 @@ const char* snow::GetName()
 const char* snow::GetURL()
 {
 	return "https://discord.gg/g798xERK5Y";
+}
+
+void snow::CheckTransmit(CCheckTransmitInfo **ppInfoList, int infoCount, CBitVec<16384> &unionTransmitEdicts, CBitVec<16384> &unionTransmitNonPlayers, const Entity2Networkable_t **pNetworkables, const uint16 *pEntityIndicies, int nEntities, bool bEnablePVSBits)
+{
+	OnCheckTransmit(ppInfoList, infoCount, unionTransmitEdicts, unionTransmitNonPlayers, pNetworkables, pEntityIndicies, nEntities, bEnablePVSBits);
 }
